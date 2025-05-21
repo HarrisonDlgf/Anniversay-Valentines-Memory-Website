@@ -8,6 +8,10 @@
         body {
             font-family: 'Arial', sans-serif;
             background-color: #fff0f3;
+            background-image: 
+                radial-gradient(circle at 25px 25px, rgba(255, 77, 109, 0.1) 2%, transparent 0%),
+                radial-gradient(circle at 75px 75px, rgba(255, 77, 109, 0.1) 2%, transparent 0%);
+            background-size: 100px 100px;
             margin: 0;
             padding: 20px;
             text-align: center;
@@ -16,7 +20,7 @@
         }
         @keyframes float {
             0% {
-                transform: translateY(-100vh) rotate(0deg);
+                transform: translateY(0) rotate(0deg);
                 opacity: 1;
             }
             100% {
@@ -24,7 +28,23 @@
                 opacity: 0;
             }
         }
-
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        @keyframes blink {
+            50% { border-color: transparent; }
+        }
+        .typewriter {
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 3px solid #ff4d6d;
+            animation: 
+                typewriter 4s steps(40, end),
+                blink .75s step-end infinite;
+            margin: 0 auto;
+            display: inline-block;
+        }
         .floating-hearts {
             position: fixed;
             top: 0;
@@ -39,8 +59,9 @@
         .heart-bg {
             position: absolute;
             font-size: 20px;
-            color: rgba(255, 77, 109, 0.15);
+            color: rgba(255, 77, 109, 0.3);
             animation: float 15s linear infinite;
+            will-change: transform;
         }
 
         .heart-left {
@@ -65,17 +86,35 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             background-color: white;
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #ff4d6d, #ff758f, #ff8fa3, #ff758f, #ff4d6d);
+            background-size: 200% 100%;
+            animation: gradient-shift 3s linear infinite;
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
         }
         h1 {
             color: #ff4d6d;
             font-size: 2.5em;
             margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(255, 77, 109, 0.2);
         }
         .gallery {
             display: flex;
@@ -86,8 +125,15 @@
         }
         .card-container {
             perspective: 1000px;
-            width: 250px;
-            height: 350px;
+            width: 300px;
+            height: 400px;
+            margin: 10px;
+            flex: 0 0 300px;
+            transition: transform 0.3s;
+            position: relative;
+        }
+        .card-container:hover {
+            transform: translateY(-5px);
         }
         .card {
             width: 100%;
@@ -96,10 +142,11 @@
             transform-style: preserve-3d;
             transition: transform 1.2s cubic-bezier(.4,2,.6,1);
             cursor: pointer;
+            box-shadow: 0 8px 16px rgba(255, 77, 109, 0.15);
         }
         .card-container:hover .card, .card-container:focus-within .card {
             transform: rotateY(180deg);
-            transition-delay: 1.5s;
+            transition-delay: 0.8s;
         }
         .card-front, .card-back {
             position: absolute;
@@ -108,10 +155,11 @@
             backface-visibility: hidden;
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(255,77,109,0.15);
+            box-shadow: 0 4px 8px rgba(255, 77, 109, 0.15);
             display: flex;
             align-items: center;
             justify-content: center;
+            border: 2px solid #ffb3c1;
         }
         .card-front img {
             width: 100%;
@@ -120,17 +168,20 @@
             border-radius: 15px;
         }
         .card-back {
-            background: #ffccd5;
+            background: linear-gradient(135deg, #ffccd5, #ffb3c1);
             color: #590d22;
             transform: rotateY(180deg);
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            box-sizing: border-box;
         }
         .card-message {
             font-size: 1.1em;
             text-align: center;
+            max-height: 100%;
+            overflow-y: auto;
         }
         .back-button {
             background-color: #ff4d6d;
@@ -141,12 +192,15 @@
             border-radius: 25px;
             cursor: pointer;
             font-size: 1.1em;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(255, 77, 109, 0.2);
             text-decoration: none;
             display: inline-block;
         }
         .back-button:hover {
             background-color: #ff758f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 77, 109, 0.3);
         }
         .heart {
             color: #ff4d6d;
@@ -171,19 +225,98 @@
                 max-height: 400px;
             }
         }
+        @keyframes float-bubble {
+            0% { 
+                transform: translateY(100vh) translateX(0) rotate(0deg); 
+                opacity: 0; 
+            }
+            10% { 
+                opacity: 0.8; 
+            }
+            90% { 
+                opacity: 0.8; 
+            }
+            100% { 
+                transform: translateY(-100px) translateX(200px) rotate(360deg); 
+                opacity: 0; 
+            }
+        }
+        @keyframes float-cloud {
+            0% { transform: translateX(-100vw); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateX(100vw); opacity: 0; }
+        }
+        @keyframes sparkle {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1) rotate(180deg); opacity: 1; }
+            100% { transform: scale(0) rotate(360deg); opacity: 0; }
+        }
+        .bubble {
+            position: fixed;
+            background: rgba(255, 182, 193, 0.2);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+            animation: float-bubble 15s linear infinite;
+            will-change: transform;
+        }
+        .cloud {
+            position: fixed;
+            color: rgba(255, 182, 193, 0.3);
+            font-size: 40px;
+            pointer-events: none;
+            z-index: -1;
+            animation: float-cloud 30s linear infinite;
+        }
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .card-container:hover .sparkle {
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
     </style>
 </head>
 <body>
     <div class="floating-hearts">
-        {% for i in range(64) %}
+        {% for i in range(96) %}
         <div class="heart-bg" style="
-            left: {{ (i % 8) * 12.5 }}%;
-            animation-delay: {{ i * 0.2 }}s;
+            left: {{ (i % 24) * 4.16 + (i % 3) * 2 }}%;
+            top: {{ (i % 8) * -12.5 }}vh;
+            animation-delay: {{ (i % 8) * 0.2 }}s;
             font-size: {{ 15 + (i % 5) * 5 }}px;
             animation-duration: {{ 10 + (i % 5) * 5 }}s;
         ">❤️</div>
         {% endfor %}
     </div>
+
+    <!-- Add bubbles -->
+    {% for i in range(20) %}
+    <div class="bubble" style="
+        left: {{ (i % 10) * 10 + (i % 3) * 5 }}%;
+        width: {{ 15 + (i % 4) * 8 }}px;
+        height: {{ 15 + (i % 4) * 8 }}px;
+        animation-delay: {{ (i % 8) * 2 }}s;
+        animation-duration: {{ 12 + (i % 6) * 3 }}s;
+    "></div>
+    {% endfor %}
+
+    <!-- Add clouds -->
+    {% for i in range(5) %}
+    <div class="cloud" style="
+        top: {{ (i % 3) * 30 }}%;
+        animation-delay: {{ (i % 3) * 10 }}s;
+        animation-duration: {{ 20 + (i % 3) * 10 }}s;
+    ">☁️</div>
+    {% endfor %}
+
     <div class="container">
         <h1>More Memories <span class="heart">💕</span></h1>
         <a href="/" class="back-button">Back to Home</a>
@@ -200,6 +333,14 @@
                         </div>
                     </div>
                 </div>
+                <!-- Add sparkles -->
+                {% for i in range(8) %}
+                <div class="sparkle" style="
+                    left: {{ (i % 4) * 25 }}%;
+                    top: {{ (i // 4) * 25 }}%;
+                    animation-delay: {{ (i % 4) * 0.2 }}s;
+                "></div>
+                {% endfor %}
             </div>
             {% endfor %}
         </div>
