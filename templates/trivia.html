@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mia & Harrison Trivia</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #fff0f3;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #ff4d6d;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        .question {
+            color: #590d22;
+            font-size: 1.2em;
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #ffccd5;
+            border-radius: 10px;
+        }
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .option {
+            background-color: white;
+            color: #ff4d6d;
+            border: 2px solid #ff4d6d;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .option:hover {
+            background-color: #ff4d6d;
+            color: white;
+        }
+        .option.selected {
+            background-color: #ff4d6d;
+            color: white;
+            transform: scale(1.05);
+        }
+        .back-button {
+            background-color: #ff4d6d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .back-button:hover {
+            background-color: #ff758f;
+        }
+        .submit-button {
+            background-color: #ff4d6d;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s;
+            display: none;
+        }
+        .submit-button:hover {
+            background-color: #ff758f;
+            transform: scale(1.05);
+        }
+        .result {
+            display: none;
+            margin: 20px 0;
+            padding: 30px;
+            background-color: #ffccd5;
+            border-radius: 15px;
+            animation: celebrate 1s ease-in-out;
+        }
+        @keyframes celebrate {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #ff4d6d;
+            animation: confetti-fall 3s linear infinite;
+        }
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>How Well Do You Know Us? 💕</h1>
+        <a href="/" class="back-button">Back to Home</a>
+        
+        <div id="quiz-container">
+            {% for q in questions %}
+            <div class="question" id="q{{ q.index }}">
+                <p>{{ q.question }}</p>
+                <div class="options">
+                    {% for opt in q.options %}
+                    <button class="option" data-q="{{ q.index }}">{{ opt }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <button class="submit-button" id="submit-btn">Submit Answers 💝</button>
+
+        <div class="result" id="result">
+            <h2>Quiz Complete! 🎉</h2>
+            <p>You got <span id="score">0</span> out of {{ questions|length }} correct!</p>
+            <p id="message"></p>
+            <button class="back-button" onclick="location.reload()">Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize quiz data
+        const quizData = {
+            questions: {{ questions|tojson }},
+            selectedAnswers: new Array({{ questions|length }}).fill(null),
+            confettiCount: 0
+        };
+
+        // Add click handlers to all options
+        document.querySelectorAll('.option').forEach(button => {
+            button.addEventListener('click', function() {
+                const qIndex = parseInt(this.dataset.q);
+                const question = document.getElementById('q' + qIndex);
+                
+                // Remove selected class from other options in this question
+                question.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+                
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                
+                // Store the selected answer
+                quizData.selectedAnswers[qIndex] = this.textContent.trim();
+                
+                // Show submit button if all questions are answered
+                const submitButton = document.getElementById('submit-btn');
+                if (quizData.selectedAnswers.every(answer => answer !== null)) {
+                    submitButton.style.display = 'inline-block';
+                }
+            });
+        });
+
+        function createConfetti() {
+            if (quizData.confettiCount >= 50) return;
+            
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 75%)`;
+            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            document.body.appendChild(confetti);
+            
+            quizData.confettiCount++;
+            setTimeout(() => {
+                confetti.remove();
+                quizData.confettiCount--;
+            }, 3000);
+        }
+
+        // Add submit button handler
+        document.getElementById('submit-btn').addEventListener('click', function() {
+            let score = 0;
+            
+            // Check answers
+            quizData.questions.forEach((q, index) => {
+                if (quizData.selectedAnswers[index] === q.correct) {
+                    score++;
+                }
+            });
+            
+            // Hide questions and submit button
+            document.getElementById('quiz-container').style.display = 'none';
+            this.style.display = 'none';
+            
+            // Show result
+            const result = document.getElementById('result');
+            result.style.display = 'block';
+            document.getElementById('score').textContent = score;
+            
+            // Show celebration message
+            const message = document.getElementById('message');
+            if (score === quizData.questions.length) {
+                message.textContent = "Perfect score! You know us inside and out! 💖";
+                setInterval(createConfetti, 100);
+            } else if (score >= quizData.questions.length * 0.8) {
+                message.textContent = "Amazing! You really know us well! 💕";
+                setInterval(createConfetti, 200);
+            } else if (score >= quizData.questions.length * 0.6) {
+                message.textContent = "Good job! You know us pretty well! 💝";
+                setInterval(createConfetti, 300);
+            } else {
+                message.textContent = "Looks like we need to spend more time together! 💗";
+            }
+        });
+    </script>
+</body>
+</html> 
