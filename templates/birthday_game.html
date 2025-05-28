@@ -274,27 +274,31 @@
             '🍪', '🍪'  // Cookie
         ];
 
-        // Load leaderboard from localStorage
-        function loadLeaderboard() {
-            const leaderboard = JSON.parse(localStorage.getItem('memoryMatchLeaderboard')) || [];
-            const leaderboardList = document.getElementById('leaderboardList');
-            leaderboardList.innerHTML = '';
-            
-            if (leaderboard.length === 0) {
-                const noScores = document.createElement('div');
-                noScores.className = 'no-scores';
-                noScores.textContent = 'Complete the game to become the current leader!';
-                leaderboardList.appendChild(noScores);
-                return;
-            }
+        // Load leaderboard from server
+        async function loadLeaderboard() {
+            try {
+                const response = await fetch('/api/scores');
+                const scores = await response.json();
+                const leaderboardList = document.getElementById('leaderboardList');
+                leaderboardList.innerHTML = '';
+                
+                if (scores.length === 0) {
+                    const noScores = document.createElement('div');
+                    noScores.className = 'no-scores';
+                    noScores.textContent = 'Complete the game to become the current leader!';
+                    leaderboardList.appendChild(noScores);
+                    return;
+                }
 
-            const topScores = leaderboard.sort((a, b) => b.score - a.score).slice(0, 3);
-            topScores.forEach((entry, index) => {
-                const entryDiv = document.createElement('div');
-                entryDiv.className = 'leaderboard-entry';
-                entryDiv.innerHTML = `<span>${index + 1}. ${entry.name}</span><span>${entry.score}s left</span>`;
-                leaderboardList.appendChild(entryDiv);
-            });
+                scores.forEach((score, index) => {
+                    const entryDiv = document.createElement('div');
+                    entryDiv.className = 'leaderboard-entry';
+                    entryDiv.innerHTML = `<span>${index + 1}. ${score.name}</span><span>${score.score}s left</span>`;
+                    leaderboardList.appendChild(entryDiv);
+                });
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+            }
         }
 
         function showNameInput() {
@@ -302,14 +306,28 @@
             document.getElementById('playerName').focus();
         }
 
-        function submitScore() {
+        async function submitScore() {
             const name = document.getElementById('playerName').value.trim();
             if (name) {
-                const leaderboard = JSON.parse(localStorage.getItem('memoryMatchLeaderboard')) || [];
-                leaderboard.push({ name, score: currentScore });
-                localStorage.setItem('memoryMatchLeaderboard', JSON.stringify(leaderboard));
-                document.getElementById('nameInputModal').style.display = 'none';
-                loadLeaderboard();
+                try {
+                    const response = await fetch('/api/scores', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            name: name,
+                            score: currentScore
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        document.getElementById('nameInputModal').style.display = 'none';
+                        loadLeaderboard();
+                    }
+                } catch (error) {
+                    console.error('Error submitting score:', error);
+                }
             }
         }
 

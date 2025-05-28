@@ -1,8 +1,22 @@
-from flask import Flask, render_template, send_from_directory, jsonify
+from flask import Flask, render_template, send_from_directory, jsonify, request
 import os
 from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///scores.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+class HighScore(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    score = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+# Create tables
+with app.app_context():
+    db.create_all()
 
 # Create uploads directory if it doesn't exist
 UPLOAD_FOLDER = 'static/uploads'
@@ -142,6 +156,30 @@ def birthday_game():
 @app.route('/birthday-card')
 def birthday_card():
     return render_template('birthday_card.html')
+
+@app.route('/api/scores', methods=['GET'])
+def get_scores():
+    scores = HighScore.query.order_by(HighScore.score.desc()).limit(3).all()
+    return jsonify([{
+        'name': score.name,
+        'score': score.score,
+        'date': score.date.strftime('%Y-%m-%d %H:%M:%S')
+    } for score in scores])
+
+@app.route('/api/scores', methods=['POST'])
+def add_score():
+    data = request.get_json()
+    if not data or 'name' not in data or 'score' not in data:
+        return jsonify({'error': 'Invalid data'}), 400
+    
+    new_score = HighScore(
+        name=data['name'],
+        score=data['score']
+    )
+    db.session.add(new_score)
+    db.session.commit()
+    
+    return jsonify({'message': 'Score added successfully'}), 201
 
 if __name__ == '__main__':
     app.run(debug=False)
