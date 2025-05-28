@@ -275,30 +275,58 @@
         ];
 
         // Load leaderboard from server
+        let leaderboardCache = null;
+        let lastLeaderboardUpdate = 0;
+        const CACHE_DURATION = 300000; // 5 minutes cache (increased from 5 seconds)
+        let isLeaderboardLoading = false;
+
         async function loadLeaderboard() {
+            const now = Date.now();
+            // Use cached data if available and not expired
+            if (leaderboardCache && (now - lastLeaderboardUpdate) < CACHE_DURATION) {
+                updateLeaderboardDisplay(leaderboardCache);
+                return;
+            }
+
+            // Prevent multiple simultaneous requests
+            if (isLeaderboardLoading) return;
+            isLeaderboardLoading = true;
+
             try {
                 const response = await fetch('/api/scores');
                 const scores = await response.json();
-                const leaderboardList = document.getElementById('leaderboardList');
-                leaderboardList.innerHTML = '';
-                
-                if (scores.length === 0) {
-                    const noScores = document.createElement('div');
-                    noScores.className = 'no-scores';
-                    noScores.textContent = 'Complete the game to become the current leader!';
-                    leaderboardList.appendChild(noScores);
-                    return;
-                }
+                leaderboardCache = scores;
+                lastLeaderboardUpdate = now;
+                updateLeaderboardDisplay(scores);
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+            } finally {
+                isLeaderboardLoading = false;
+            }
+        }
 
+        function updateLeaderboardDisplay(scores) {
+            const leaderboardList = document.getElementById('leaderboardList');
+            // Use DocumentFragment for better performance
+            const fragment = document.createDocumentFragment();
+            
+            if (scores.length === 0) {
+                const noScores = document.createElement('div');
+                noScores.className = 'no-scores';
+                noScores.textContent = 'Complete the game to become the current leader!';
+                fragment.appendChild(noScores);
+            } else {
                 scores.forEach((score, index) => {
                     const entryDiv = document.createElement('div');
                     entryDiv.className = 'leaderboard-entry';
                     entryDiv.innerHTML = `<span>${index + 1}. ${score.name}</span><span>${score.score}s left</span>`;
-                    leaderboardList.appendChild(entryDiv);
+                    fragment.appendChild(entryDiv);
                 });
-            } catch (error) {
-                console.error('Error loading leaderboard:', error);
             }
+            
+            // Clear and update in one operation
+            leaderboardList.innerHTML = '';
+            leaderboardList.appendChild(fragment);
         }
 
         function showNameInput() {
@@ -323,7 +351,12 @@
                     
                     if (response.ok) {
                         document.getElementById('nameInputModal').style.display = 'none';
-                        loadLeaderboard();
+                        // Only force refresh if we're in the top 3
+                        const scores = await response.json();
+                        if (scores.length < 3 || currentScore > scores[scores.length - 1].score) {
+                            leaderboardCache = null;
+                            loadLeaderboard();
+                        }
                     }
                 } catch (error) {
                     console.error('Error submitting score:', error);
@@ -379,6 +412,9 @@
             
             // Start timer
             timer = setInterval(updateTimer, 1000);
+            
+            // Load leaderboard after a short delay
+            setTimeout(loadLeaderboard, 1000);
         }
 
         function flipCard(cell) {
@@ -453,8 +489,10 @@
 
         // Start game when page loads
         window.onload = () => {
+            // Load leaderboard once at start
             loadLeaderboard();
-            startGame();
+            // Start game after a small delay to ensure smooth initial render
+            setTimeout(startGame, 100);
         };
     </script>
 </body>
