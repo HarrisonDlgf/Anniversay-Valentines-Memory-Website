@@ -1,5 +1,6 @@
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, jsonify
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -123,6 +124,16 @@ def uploaded_file(filename):
 @app.route('/more-memories/<filename>')
 def more_memories_file(filename):
     return send_from_directory(MORE_MEMORIES_FOLDER, filename)
+
+@app.route('/check-date')
+def check_date():
+    today = datetime.now()
+    is_birthday = today.month == 5 and today.day == 28
+    return jsonify({'is_birthday': is_birthday})
+
+@app.route('/birthday')
+def birthday():
+    return render_template('birthday.html')
 
 if __name__ == '__main__':
     app.run(debug=False)

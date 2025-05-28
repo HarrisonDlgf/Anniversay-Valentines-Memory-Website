@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Mia! 🎉</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/birthday.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</head>
+<body class="birthday-body">
+    <div class="birthday-container">
+        <h1 class="birthday-title">Happy Birthday Mia! 🎂</h1>
+        <div class="birthday-content">
+            <p class="birthday-message">Today is all about celebrating you! 🎉</p>
+            <div class="birthday-animation"></div>
+        </div>
+    </div>
+
+    <audio id="birthdayMusic" loop>
+        <source src="{{ url_for('static', filename='music/birthday.mp3') }}" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Start confetti
+        function startConfetti() {
+            const duration = 15 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+                confetti({
+                    ...defaults,
+                    particleCount,
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                });
+                confetti({
+                    ...defaults,
+                    particleCount,
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+                });
+            }, 250);
+        }
+
+        // Screen shake effect
+        function startScreenShake() {
+            const container = document.querySelector('.birthday-container');
+            let intensity = 5;
+            let duration = 5000;
+            let startTime = Date.now();
+
+            function shake() {
+                if (Date.now() - startTime > duration) {
+                    container.style.transform = 'translate(0, 0)';
+                    return;
+                }
+
+                const x = (Math.random() - 0.5) * intensity;
+                const y = (Math.random() - 0.5) * intensity;
+                container.style.transform = `translate(${x}px, ${y}px)`;
+                requestAnimationFrame(shake);
+            }
+
+            shake();
+        }
+
+        // Start all animations and music
+        window.onload = function() {
+            const music = document.getElementById('birthdayMusic');
+            music.play();
+            startConfetti();
+            startScreenShake();
+        };
+    </script>
+</body>
+</html> 

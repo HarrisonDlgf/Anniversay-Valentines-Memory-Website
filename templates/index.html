@@ -299,6 +299,7 @@
         @keyframes float-cloud {
             0% { transform: translateX(-100vw); opacity: 0; }
             10% { opacity: 0.6; }
+            25% { opacity: 0.6; }
             90% { opacity: 0.6; }
             100% { transform: translateX(100vw); opacity: 0; }
         }
@@ -401,6 +402,8 @@
             </div>
             {% endfor %}
         </div>
+
+        <button id="checkBirthday" class="birthday-button">Check Date</button>
     </div>
 
     <script>
@@ -475,6 +478,18 @@
                 setTimeout(() => confetti.remove(), (duration + delay) * 1000);
             }
         }
+
+        document.getElementById('checkBirthday').addEventListener('click', function() {
+            fetch('/check-date')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.is_birthday) {
+                        window.location.href = '/birthday';
+                    } else {
+                        alert('Not today, but soon! 🎉');
+                    }
+                });
+        });
     </script>
 </body>
 </html> 
