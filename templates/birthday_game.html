@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Memory Match! 🎂</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .game-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            max-width: 800px;
+            width: 90%;
+            position: relative;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .game-cell {
+            aspect-ratio: 1;
+            background: #fff;
+            border: 2px solid #ff9a9e;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+            font-size: 24px;
+        }
+
+        .game-cell.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .game-cell.matched {
+            background: #90EE90;
+            border-color: #2E8B57;
+            box-shadow: 0 0 15px rgba(46, 139, 87, 0.3);
+        }
+
+        .game-cell-front, .game-cell-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+        }
+
+        .game-cell-front {
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            transform: rotateY(180deg);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-cell-back {
+            background: linear-gradient(135deg, #ffd1dc, #ffb6c1);
+            font-size: 2em;
+            color: #ff6b6b;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            color: #ff6b6b;
+            margin: 20px 0;
+        }
+
+        .message {
+            font-size: 1.2rem;
+            color: #666;
+            margin: 20px 0;
+            min-height: 30px;
+        }
+
+        .restart-button {
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .restart-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .leaderboard {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .leaderboard h2 {
+            margin: 0 0 10px 0;
+            color: #ff6b6b;
+        }
+
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #ffd1dc;
+        }
+
+        .leaderboard-entry:last-child {
+            border-bottom: none;
+        }
+
+        .no-scores {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 10px 0;
+        }
+
+        .return-home {
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .return-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .name-input-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .name-input-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .name-input {
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #ffd1dc;
+            border-radius: 5px;
+            font-size: 1rem;
+            width: 200px;
+        }
+
+        .submit-name {
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <audio id="backgroundMusic" loop>
+        <source src="{{ url_for('static', filename='music/jeopardy.mp3') }}" type="audio/mpeg">
+    </audio>
+    <audio id="matchSound">
+        <source src="{{ url_for('static', filename='music/match.mp3') }}" type="audio/mpeg">
+    </audio>
+
+    <div class="game-container">
+        <a href="/" class="return-home">Return to Home</a>
+        <h1>Birthday Memory Match! 🎂</h1>
+        <p>Match all the birthday pairs before time runs out!</p>
+        
+        <div class="leaderboard">
+            <h2>🏆 Top Scores</h2>
+            <div id="leaderboardList"></div>
+        </div>
+
+        <div class="stats">
+            <div>Moves: <span id="moves">0</span></div>
+            <div>Pairs Found: <span id="pairs">0</span>/10</div>
+        </div>
+        <div class="timer">Time: <span id="time">120</span>s</div>
+        <div class="message" id="message"></div>
+        <div class="game-grid" id="gameGrid"></div>
+        <button class="restart-button" onclick="startGame()">Restart Game</button>
+    </div>
+
+    <div class="name-input-modal" id="nameInputModal">
+        <div class="name-input-container">
+            <h2>New High Score! 🎉</h2>
+            <p>Enter your name:</p>
+            <input type="text" class="name-input" id="playerName" maxlength="20" placeholder="Your name">
+            <br>
+            <button class="submit-name" onclick="submitScore()">Submit Score</button>
+        </div>
+    </div>
+
+    <script>
+        let timeLeft = 120;
+        let timer;
+        let moves = 0;
+        let pairsFound = 0;
+        let flippedCards = [];
+        let canFlip = true;
+        let currentScore = 0;
+
+        const pairs = [
+            '🎂', '🎂', // Birthday Cake
+            '🎁', '🎁', // Gift
+            '🎈', '🎈', // Balloon
+            '🎉', '🎉', // Party Popper
+            '🎊', '🎊', // Confetti
+            '🎆', '🎆', // Fireworks
+            '🍰', '🍰', // Cake Slice
+            '🍦', '🍦', // Ice Cream
+            '🍩', '🍩', // Donut
+            '🍪', '🍪'  // Cookie
+        ];
+
+        // Load leaderboard from localStorage
+        function loadLeaderboard() {
+            const leaderboard = JSON.parse(localStorage.getItem('memoryMatchLeaderboard')) || [];
+            const leaderboardList = document.getElementById('leaderboardList');
+            leaderboardList.innerHTML = '';
+            
+            if (leaderboard.length === 0) {
+                const noScores = document.createElement('div');
+                noScores.className = 'no-scores';
+                noScores.textContent = 'Complete the game to become the current leader!';
+                leaderboardList.appendChild(noScores);
+                return;
+            }
+
+            const topScores = leaderboard.sort((a, b) => b.score - a.score).slice(0, 3);
+            topScores.forEach((entry, index) => {
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'leaderboard-entry';
+                entryDiv.innerHTML = `<span>${index + 1}. ${entry.name}</span><span>${entry.score}s left</span>`;
+                leaderboardList.appendChild(entryDiv);
+            });
+        }
+
+        function showNameInput() {
+            document.getElementById('nameInputModal').style.display = 'flex';
+            document.getElementById('playerName').focus();
+        }
+
+        function submitScore() {
+            const name = document.getElementById('playerName').value.trim();
+            if (name) {
+                const leaderboard = JSON.parse(localStorage.getItem('memoryMatchLeaderboard')) || [];
+                leaderboard.push({ name, score: currentScore });
+                localStorage.setItem('memoryMatchLeaderboard', JSON.stringify(leaderboard));
+                document.getElementById('nameInputModal').style.display = 'none';
+                loadLeaderboard();
+            }
+        }
+
+        function startGame() {
+            // Reset game state
+            timeLeft = 120;
+            moves = 0;
+            pairsFound = 0;
+            flippedCards = [];
+            canFlip = true;
+            clearInterval(timer);
+            document.getElementById('time').textContent = timeLeft;
+            document.getElementById('moves').textContent = moves;
+            document.getElementById('pairs').textContent = pairsFound;
+            document.getElementById('message').textContent = '';
+            
+            // Start background music
+            const music = document.getElementById('backgroundMusic');
+            music.play();
+            
+            // Create grid
+            const grid = document.getElementById('gameGrid');
+            grid.innerHTML = '';
+            
+            // Shuffle pairs
+            const shuffledPairs = [...pairs].sort(() => Math.random() - 0.5);
+            
+            // Create cells
+            shuffledPairs.forEach((emoji, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'game-cell';
+                cell.dataset.emoji = emoji;
+                cell.dataset.index = index;
+                
+                const front = document.createElement('div');
+                front.className = 'game-cell-front';
+                front.textContent = emoji;
+                
+                const back = document.createElement('div');
+                back.className = 'game-cell-back';
+                back.textContent = '?';
+                
+                cell.appendChild(front);
+                cell.appendChild(back);
+                
+                cell.onclick = () => flipCard(cell);
+                grid.appendChild(cell);
+            });
+            
+            // Start timer
+            timer = setInterval(updateTimer, 1000);
+        }
+
+        function flipCard(cell) {
+            if (!canFlip || cell.classList.contains('flipped') || cell.classList.contains('matched')) return;
+            
+            cell.classList.add('flipped');
+            flippedCards.push(cell);
+            
+            if (flippedCards.length === 2) {
+                canFlip = false;
+                moves++;
+                document.getElementById('moves').textContent = moves;
+                
+                const [card1, card2] = flippedCards;
+                if (card1.dataset.emoji === card2.dataset.emoji) {
+                    // Match found
+                    const matchSound = document.getElementById('matchSound');
+                    matchSound.currentTime = 0;
+                    matchSound.play();
+                    
+                    setTimeout(() => {
+                        card1.classList.add('matched');
+                        card2.classList.add('matched');
+                        flippedCards = [];
+                        canFlip = true;
+                        pairsFound++;
+                        document.getElementById('pairs').textContent = pairsFound;
+                        
+                        if (pairsFound === 10) {
+                            clearInterval(timer);
+                            currentScore = timeLeft;
+                            document.getElementById('message').textContent = '🎉 Congratulations! You found all the pairs! 🎉';
+                            
+                            // Check if it's a high score
+                            const leaderboard = JSON.parse(localStorage.getItem('memoryMatchLeaderboard')) || [];
+                            const lowestScore = leaderboard.length > 0 ? Math.min(...leaderboard.map(entry => entry.score)) : 0;
+                            
+                            if (leaderboard.length < 5 || currentScore > lowestScore) {
+                                showNameInput();
+                            }
+                        }
+                    }, 500);
+                } else {
+                    // No match
+                    setTimeout(() => {
+                        card1.classList.remove('flipped');
+                        card2.classList.remove('flipped');
+                        flippedCards = [];
+                        canFlip = true;
+                    }, 1000);
+                }
+            }
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            document.getElementById('time').textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                document.getElementById('message').textContent = '⏰ Time\'s up! Try again!';
+                revealAllCards();
+            }
+        }
+
+        function revealAllCards() {
+            const cells = document.querySelectorAll('.game-cell');
+            cells.forEach(cell => {
+                cell.classList.add('flipped');
+            });
+        }
+
+        // Start game when page loads
+        window.onload = () => {
+            loadLeaderboard();
+            startGame();
+        };
+    </script>
+</body>
+</html> 

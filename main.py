@@ -135,5 +135,13 @@ def check_date():
 def birthday():
     return render_template('birthday.html')
 
+@app.route('/birthday-game')
+def birthday_game():
+    return render_template('birthday_game.html')
+
+@app.route('/birthday-card')
+def birthday_card():
+    return render_template('birthday_card.html')
+
 if __name__ == '__main__':
     app.run(debug=False)

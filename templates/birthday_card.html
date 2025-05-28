@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Card! 🎂</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-container {
+            perspective: 1000px;
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            margin: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1s;
+            cursor: pointer;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            background: white;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            overflow-y: auto;
+        }
+
+        .card-content {
+            text-align: center;
+            max-width: 90%;
+            margin: 0 auto;
+        }
+
+        .card-title {
+            font-size: 2.5rem;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .card-message {
+            font-size: 1.2rem;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .page-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        .page-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ffd1dc;
+            cursor: pointer;
+        }
+
+        .page-dot.active {
+            background: #ff6b6b;
+        }
+
+        .next-button {
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .next-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .decorations {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .decoration {
+            position: absolute;
+            font-size: 2rem;
+            animation: float 3s infinite ease-in-out;
+        }
+
+        .floating-emoji {
+            position: absolute;
+            font-size: 2.5rem;
+            animation: float 3s infinite ease-in-out;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .spinning-emoji {
+            animation: spin 10s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <div class="card" id="card">
+            <div class="card-front">
+                <div class="card-content">
+                    <h1 class="card-title">Happy Birthday Mia! 🎂</h1>
+                    <p class="card-message">Click to open your special card!</p>
+                </div>
+            </div>
+            <div class="card-back">
+                <div class="card-content" id="cardContent">
+                    <!-- Content will be dynamically updated -->
+                </div>
+                <div class="page-indicator" id="pageIndicator">
+                    <!-- Page dots will be dynamically added -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const pages = [
+            {
+                title: "To My Mia",
+                message: "I can't believe I was to meet able to join you for all the memories we've made.<br><br>Your smile lights up any room, your laugh is something I can't live without, and your love makes every day worth living.<br><br>I love you, happy birthday."
+            },
+            {
+                title: "Our Journey Together",
+                message: "From thrifting, to semi, to heading to DMV and back together.<br><br>Your hard work ethic, your strength, and your beautiful personality continue to show me exactly why you are indeed the most special person in the world.<br><br>I'm so grateful to be celebrating another year of your life."
+            },
+            {
+                title: "Happy Birthday!",
+                message: "May this year bring you all the Friendlies' cups you deserve.<br><br>I promise to take good care of you, here's to many more adventures!"
+            }
+        ];
+
+        let currentPage = 0;
+        const card = document.getElementById('card');
+        const cardContent = document.getElementById('cardContent');
+        const pageIndicator = document.getElementById('pageIndicator');
+
+        // Create page indicators
+        pages.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.className = `page-dot ${index === 0 ? 'active' : ''}`;
+            dot.onclick = () => goToPage(index);
+            pageIndicator.appendChild(dot);
+        });
+
+        function updateContent() {
+            const page = pages[currentPage];
+            cardContent.innerHTML = `
+                <h2 class="card-title">${page.title}</h2>
+                <p class="card-message">${page.message}</p>
+                ${currentPage < pages.length - 1 ? 
+                    '<button class="next-button" onclick="nextPage()">Next Page</button>' : 
+                    '<button class="next-button" onclick="window.location.href=\'/birthday\'">Close Card</button>'}
+            `;
+            
+            // Update page indicators
+            document.querySelectorAll('.page-dot').forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentPage);
+            });
+        }
+
+        function nextPage() {
+            if (currentPage < pages.length - 1) {
+                currentPage++;
+                updateContent();
+            }
+        }
+
+        function goToPage(pageIndex) {
+            currentPage = pageIndex;
+            updateContent();
+        }
+
+        card.addEventListener('click', () => {
+            if (!card.classList.contains('flipped')) {
+                card.classList.add('flipped');
+                updateContent();
+            }
+        });
+
+        // Add floating emojis around the card
+        const emojis = ['🎂', '🎁', '🎈', '🎉', '🎊', '💝', '💖', '💗', '💓', '💕', '💘', '💞', '💟', '💌', '💋', '💘'];
+        const container = document.querySelector('.card-container');
+        
+        emojis.forEach((emoji, index) => {
+            const floatingEmoji = document.createElement('div');
+            floatingEmoji.className = 'floating-emoji';
+            floatingEmoji.textContent = emoji;
+            
+            // Position emojis in a circle around the card
+            const angle = (index / emojis.length) * Math.PI * 2;
+            const radius = 400; // Distance from center
+            const x = Math.cos(angle) * radius;
+            const y = Math.sin(angle) * radius;
+            
+            floatingEmoji.style.left = `calc(50% + ${x}px)`;
+            floatingEmoji.style.top = `calc(50% + ${y}px)`;
+            floatingEmoji.style.animationDelay = `${index * 0.2}s`;
+            
+            // Add spinning animation to some emojis
+            if (index % 3 === 0) {
+                floatingEmoji.classList.add('spinning-emoji');
+            }
+            
+            document.body.appendChild(floatingEmoji);
+        });
+    </script>
+</body>
+</html> 

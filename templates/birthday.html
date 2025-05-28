@@ -13,6 +13,11 @@
         <div class="birthday-content">
             <p class="birthday-message">Today is all about celebrating you! 🎉</p>
             <div class="birthday-animation"></div>
+            
+            <div class="birthday-features">
+                <a href="/birthday-game" class="feature-button">Play Mia's Birthday Match! 🎮</a>
+                <a href="/birthday-card" class="feature-button">Open Your Card 💌</a>
+            </div>
         </div>
     </div>
 
@@ -52,7 +57,6 @@
             }, 250);
         }
 
-        // Screen shake effect
         function startScreenShake() {
             const container = document.querySelector('.birthday-container');
             let intensity = 5;
@@ -74,7 +78,6 @@
             shake();
         }
 
-        // Start all animations and music
         window.onload = function() {
             const music = document.getElementById('birthdayMusic');
             music.play();
@@ -82,5 +85,30 @@
             startScreenShake();
         };
     </script>
+
+    <style>
+        .birthday-features {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .feature-button {
+            background: white;
+            color: #ff6b6b;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+    </style>
 </body>
 </html> 
