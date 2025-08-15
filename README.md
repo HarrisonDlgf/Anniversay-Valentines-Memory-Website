@@ -164,7 +164,7 @@ const pages = [
 
 ## 🔒 Privacy Note
 
-This public version contains no personal information and is safe to share. All messages and content are customizable placeholders. Your personal photos and messages stay private on your local machine.
+This public version contains no personal information and is safe to share. All messages and content are customizable placeholders. Your personal photos and messages stay private on your local machine. I recommend branching off and utilizing the gitignore if using git for state management.
 
 ## 🎵 Music Recommendations
 
@@ -176,6 +176,6 @@ For the best experience, consider using:
 
 ---
 
-**Made with ❤️ for couples everywhere**
+**Made with ❤️ for couples and partnerships everywhere**
 
-*This website was created to help couples celebrate their love and create beautiful memories together. Customize it to make it uniquely yours!* 
+*I made this website initially for an anniversary, I hope anyone who wishes to fork or clone can use it as a nice surprise for a special person*
